@@ -63,12 +63,12 @@ class InvoiceDataBase:
                            f"billing revenue HT <{invoice.total_HT} euros>.")
 
         if self.total_HT < self.THRESHOLD_TVA and invoice.TVA:
-            raise TVAError(f"Total revenue HT < {self.total_HT} euros > is below TVA threshold "
+            raise TVAError(f"Total revenue HT <{self.total_HT} euros> is below TVA threshold "
                            f"<{self.THRESHOLD_TVA} euros>. TVA must not be applied on this billing!")
 
         if self.total_HT > self.THRESHOLD_TVA and not invoice.TVA:
-            raise TVAError(f"Total revenue HT < {self.total_HT} euros > is above TVA threshold "
-                           f"<{self.THRESHOLD_TVA} euros >. TVA must be applied on this billing!")
+            raise TVAError(f"Total revenue HT <{self.total_HT} euros> is above TVA threshold "
+                           f"<{self.THRESHOLD_TVA} euros>. TVA must be applied on this billing!")
 
 
     def _check_invoice_number(self, invoice):

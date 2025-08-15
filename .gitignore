@@ -2,7 +2,7 @@
 .venv
 __pycache__
 dist
-data
+/data/
 billing.egg-info
 *.pyc
 *NMI*

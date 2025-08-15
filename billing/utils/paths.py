@@ -27,7 +27,7 @@ class DataDir:
 
     INVOICE_DIR = "./invoices"
     DATA = "./data/data.json"
-    DATABASE = "./data/db_2025.json"
+    DATABASE = "./data/database.json"
 
     DUMMY_DATA = os.path.join(up(up(__file__)), 'data', 'dummy_data.json')
     DUMMY_DATABASE = os.path.join(up(up(__file__)), 'data', 'dummy_database.json')

@@ -1,0 +1,29 @@
+{
+  "company":
+    {
+      "name": "MyCompany",
+      "phone": "+33660xxxx",
+      "email": "mycompany@gmail.com",
+      "street": "9 rue des arrosoirs",
+      "postcode": "58999",
+      "city": "ArrosoirCity",
+      "country" : "France",
+      "siren": "12345678",
+      "tva_number" : "12345678"
+    },
+  "client":
+    {
+      "name": "MyClient",
+      "street":  "1 rue des Platanes",
+      "postcode": "59888",
+      "city": "PlatanesCity",
+      "country": "France",
+      "siret": "1087654321",
+      "tva_number": "FR10987654"},
+    "bank_account":
+    {
+      "iban": "FR76 1234 4321 3456 6543 4567 123",
+      "bic":  "BAN DES ARBR"
+    }
+}
+
