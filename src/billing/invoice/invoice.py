@@ -39,7 +39,7 @@ class Invoice(BuildPDFMixin):
         self._elements = []
         self._setup_data()
 
-        logger.info(f"invoice {self} generated")
+        logger.info(f"{self} generated")
 
     def _setup_data(self):
         """Load company, client, and bank data from JSON setup file."""
@@ -87,7 +87,7 @@ class Invoice(BuildPDFMixin):
 
     def __str__(self):
         return (f"<Invoice: n°{self.number} - {self.period_month} {self.period_year} - "
-                f"days={self.quantity} - revenue_HT={self.total_HT} TVA={self.TVA}>")
+                f"days={self.quantity} - unit_price={self.unit_price} - revenue_HT={self.total_HT} - TVA={self.TVA}>")
 
     def build_pdf(self):
         pdf_invoice = f"facture_{self.number}_{self.company.name[:3]}.pdf"
@@ -102,7 +102,7 @@ class Invoice(BuildPDFMixin):
         self._billing()
 
         if not self.is_valid:
-            logger.warning(f"{self} has not been checked!")
+            logger.warning(f"{self} is not valid")
 
         doc.build(self._elements ,onFirstPage=footer(self.company, self.TVA))
         logger.info(f"✅  PDF billing generated : {pdf_invoice}")

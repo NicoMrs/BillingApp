@@ -1,4 +1,4 @@
-# utils.py
+# exceptions.py
 
 class InvalidInvoice(BaseException):
     pass

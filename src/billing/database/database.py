@@ -2,12 +2,11 @@
 
 import json
 import os
-from .utils import TVAError, InvoiceNumberError, InvalidInvoice
+from .exceptions import TVAError, InvoiceNumberError, InvalidInvoice
 from ..utils.setup_logger import logger
 from ..utils.paths import DataDir
 
 __all__ = ["InvoiceDataBase"]
-
 
 class InvoiceDataBase:
 
@@ -36,26 +35,24 @@ class InvoiceDataBase:
 
     def add_invoice(self, invoice):
         """ add invoice to database """
-        while True:
-            ans = input(f"ADD {invoice} to database ? (y/n) ")
 
-            if ans.lower().strip() == "y":
-                if invoice.is_valid is None:
-                    logger.error(f"Check invoice before adding to database.")
-                    return
-                elif invoice.is_valid is False:
-                    logger.error(f"Cannot add invalid invoice to database.")
-                    return
-                self.db.append(invoice.to_dict())
-                self._save_db(invoice)
-                break
+        if invoice.is_valid is None:
+            logger.error(f"Check invoice {invoice} before adding to database.")
+            return
+        elif invoice.is_valid is False:
+            logger.error(f"Cannot add invalid invoice to database.")
+            return
 
-            elif ans.lower().strip() == "n":
-                logger.info(f"Invoice n°{invoice.number} NOT ADDED to database")
-                break
+        self.db.append(invoice.to_dict())
+        self._save_db(invoice)
 
     def _check_tva_threshold(self, invoice):
-        """ check TVA is properly accounted for """
+        """
+        Ensure that TVA (VAT) rules are applied correctly:
+          - TVA must not be applied below threshold.
+          - TVA must be applied above threshold.
+          - Raise error if adding this invoice crosses threshold incorrectly.
+        """
 
         if self.total_HT < self.THRESHOLD_TVA < self.total_HT+invoice.total_HT:
             raise TVAError(f"TVA threshold <{self.THRESHOLD_TVA} euros> is reached at this billing. "
@@ -72,7 +69,11 @@ class InvoiceDataBase:
 
 
     def _check_invoice_number(self, invoice):
-        """ check billing number is different from last billing number in database and update it if necessary """
+        """
+        Ensure invoice numbering is consistent:
+          - Must always increase.
+          - If equal to last invoice, increment it automatically.
+        """
         if len(self) > 0:
 
             last_invoice = self.db[-1]
@@ -82,29 +83,35 @@ class InvoiceDataBase:
                 invoice.number += 1
 
             if invoice.number < last_invoice["number"]:
-                raise InvoiceNumberError(f"Invalid invoice number {invoice.number}. Invoice numbers must be increasing")
+                raise InvoiceNumberError(f"Invalid invoice number {invoice.number}. "
+                                         f"Invoice numbers in database must be increasing.")
 
     def check_invoice(self, invoice):
+        """
+        Validate invoice by checking TVA rules and numbering.
+        Mark invoice as valid if no exception occurs.
+        """
         try:
             self._check_tva_threshold(invoice)
             self._check_invoice_number(invoice)
             invoice.is_valid = True
         except (TVAError, InvoiceNumberError) as err:
+            logger.error(f"{err}")
             raise InvalidInvoice(err) from err
-
 
     @property
     def total_HT(self):
+        """Compute the total db revenue before tax (HT) across all invoices."""
         return sum(invoice["total_HT"] for invoice in self)
 
     def load_data_base(self):
-        # Load JSON from file
+        """Load database from JSON file."""
         with open(self.db_file, "r", encoding="utf-8") as f:
             data = json.load(f)
         return data
 
     def _save_db(self, invoice):
-
+        """ Add invoice to database """
         with open(self.db_file, "w") as f:
             json.dump(self.db, f, ensure_ascii=True, indent=4)
         logger.info(f"Invoice n°{invoice.number} ADDED to database")

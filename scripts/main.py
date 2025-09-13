@@ -20,6 +20,7 @@ logger.info(f"DataBase {db}")
 
 # ** Check invoice : number and TVA threshold
 db.check_invoice(invoice_1)
+db.check_invoice(invoice_2)
 
 # ** Add valid invoice to database
 db.add_invoice(invoice_1)
