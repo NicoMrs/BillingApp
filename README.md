@@ -9,9 +9,9 @@ This tool:
 Examples of generated invoices can be found in the `invoices/` folder. Two types of invoices are supported: **with** and **without TVA**.
 
 See example below,
-
-![Invoice Example](images/invoice.JPG)
-
+<p align="center">
+  <img src="images/invoice.JPG" alt="Invoice Example">
+</p>
 
 ---
 
