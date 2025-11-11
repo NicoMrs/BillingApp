@@ -57,7 +57,8 @@ class InvoiceDataBase:
         if self.total_HT < self.THRESHOLD_TVA < self.total_HT+invoice.total_HT:
             raise TVAError(f"TVA threshold <{self.THRESHOLD_TVA} euros> is reached at this billing. "
                            f"Current total revenue HT <{self.total_HT} euros> - "
-                           f"billing revenue HT <{invoice.total_HT} euros>.")
+                           f"billing revenue HT <{invoice.total_HT} euros>."
+                           f"Must write invoice manually")
 
         if self.total_HT < self.THRESHOLD_TVA and invoice.TVA:
             raise TVAError(f"Total revenue HT <{self.total_HT} euros> is below TVA threshold "
@@ -77,14 +78,10 @@ class InvoiceDataBase:
         if len(self) > 0:
 
             last_invoice = self.db[-1]
-            if last_invoice["number"] == invoice.number:
+            if last_invoice["number"] <= invoice.number:
                 logger.warning(f"Last billing in database has same number: {invoice.number}. "
                                f"Current billing number is incremented (+1).")
                 invoice.number += 1
-
-            if invoice.number < last_invoice["number"]:
-                raise InvoiceNumberError(f"Invalid invoice number {invoice.number}. "
-                                         f"Invoice numbers in database must be increasing.")
 
     def check_invoice(self, invoice):
         """

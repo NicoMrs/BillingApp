@@ -8,8 +8,7 @@ def check_existing_path(func):
     @wraps(func)
     def inner(cls, file_path):
         if not os.path.isfile(file_path):
-            logger.warning(f"Data path {file_path!r} does not exist. Could not update.")
-            return # avoid unnecessary updates
+            raise FileNotFoundError(f"Data path {file_path!r} does not exist.")
         return func(cls, file_path)
     return inner
 
@@ -25,9 +24,9 @@ def check_existing_dir(func):
 
 class DataDir:
 
-    INVOICE_DIR = "./invoices"
-    DATA = "./data/data.json"
-    DATABASE = "./data/database.json"
+    INVOICE_DIR = os.path.abspath("./invoices")
+    DATA = os.path.abspath("./data/data.json")
+    DATABASE = os.path.abspath("./data/database.json")
 
     DUMMY_DATA = os.path.join(up(up(__file__)), 'data', 'dummy_data.json')
     DUMMY_DATABASE = os.path.join(up(up(__file__)), 'data', 'dummy_database.json')
@@ -35,14 +34,20 @@ class DataDir:
     @classmethod
     @check_existing_path
     def update_data_path(cls, data_path):
-        cls.DATA = data_path
+        cls.DATA = os.path.abspath(data_path)
 
     @classmethod
     @check_existing_path
     def update_database_path(cls, database_path):
-        cls.DATABASE = database_path
+        cls.DATABASE = os.path.abspath(database_path)
 
     @classmethod
     @check_existing_dir
     def update_invoice_dir(cls, invoice_dir):
-        cls.INVOICE_DIR = invoice_dir
+        cls.INVOICE_DIR = os.path.abspath(invoice_dir)
+
+    @classmethod
+    def status(cls):
+        return (f"* data :        {cls.DATA!r}\n" 
+                f"* database :    {cls.DATABASE!r}\n"
+                f"* invoice dir : {cls.INVOICE_DIR!r}")

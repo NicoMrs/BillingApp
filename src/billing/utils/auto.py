@@ -1,8 +1,71 @@
 from billing.utils.setup_logger import logger
 from datetime import date, timedelta
 from babel.dates import format_date
+from billing.database import *
 from ..invoice import *
+from ..database.exceptions import *
+from .paths import DataDir
 import os
+
+def manage_invoice():
+    """
+    Connect to the invoice database and generate a valid invoice.
+
+    Workflow:
+        1. Generate a new invoice.
+        2. Repeatedly attempt to validate and store the invoice until successful:
+            - Validate the invoice using the database (`check_invoice`).
+            - Add the invoice to the database (`add_invoice`).
+            - Build the invoice PDF (`build_pdf`).
+        3. If validation fails due to known errors, retry with a newly generated invoice.
+
+    Exceptions handled:
+        TVAError: Raised when there is an issue with tax calculation or validation.
+        InvalidInvoice: Raised when the invoice data structure is malformed.
+
+    Returns:
+        None
+    """
+    db = InvoiceDataBase()
+    logger.info(f"DataBase {db}")
+
+    while True:
+        invoice = generate_invoice()
+
+        try:
+            db.check_invoice(invoice)
+            db.add_invoice(invoice)
+            invoice.build_pdf()
+            logger.info("Success")
+            exit()
+
+        except (TVAError, InvalidInvoice) as err:
+            logger.error(f"Must redefine invoice")
+
+
+def manual_setup():
+    """
+    Manually initialize the application's required resources and update the global DataDir configuration.
+
+    This function performs the following steps:
+      1. Initializes the paths for `data.json` and `database.json` by calling
+         `init_data_and_db()`.
+      2. Initializes the invoice directory via `init_invoice()`.
+      3. Updates the `DataDir` object with the resolved paths for:
+         - data file
+         - database file
+         - invoice directory
+
+    This ensures that all core data locations are properly registered before the application runs.
+
+    Returns:
+        None
+    """
+    data, database = init_data_and_db()
+    invoice_dir = init_invoice()
+    DataDir.update_data_path(data)
+    DataDir.update_database_path(database)
+    DataDir.update_invoice_dir(invoice_dir)
 
 def generate_invoice():
     """
@@ -20,7 +83,7 @@ def generate_invoice():
 
     while True:
 
-        logger.info("User details for invoice generation")
+        logger.info("Enter details for invoice generation")
 
         # set up date
         period_date = get_period()

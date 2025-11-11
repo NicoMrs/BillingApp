@@ -1,42 +1,52 @@
 import argparse
-from decimal import Decimal
+
 from billing.utils.setup_logger import logger
-from billing.database import *
-
-from .utils.auto import init_data_and_db, init_invoice, generate_invoice
 from .utils.paths import DataDir
-from billing.database.exceptions import TVAError, InvoiceNumberError, InvalidInvoice
+from .utils.auto import manual_setup, manage_invoice, find_files_based_on_key
 
+
+def main():
+
+    parser = argparse.ArgumentParser(
+        description="Configure billing system paths (data, database, invoice). "
+                    "Falls back to manual setup if incomplete."
+    )
+    # optional argument with flag
+    parser.add_argument("-d", "--data", type=str,
+                        help="Path to folder containing data.json and database.json", default=None)
+    parser.add_argument("-i", "--invoice", type=str, help="Path to invoice directory", default=None)
+
+    args = parser.parse_args()
+
+    # all arguments must be provided at once, otherwise fall back to manual setup
+    if args.data is None or args.invoice is None:
+        logger.info("Missing arguments, fall back to manual setup")
+        manual_setup()
+    else:
+        try:
+            fpath = find_files_based_on_key(args.data)
+            data = fpath.get('data', None)
+            database = fpath.get('database', None)
+
+            DataDir.update_data_path(data)
+            DataDir.update_database_path(database)
+            DataDir.update_invoice_dir(args.invoice)
+            logger.info("Successful set up")
+        except (TypeError, FileNotFoundError, PermissionError, ValueError) as err:
+            logger.error(f"Automatic setup failed: {err}. Falling back to manual setup.")
+            manual_setup()
+
+    logger.info(f"Current set up\n{DataDir.status()}")
+
+    manage_invoice()
 
 
 if __name__ == "__main__":
 
-    # ** Set up files
-    # set up input files
-    data, database = init_data_and_db()
-    DataDir.update_data_path(data)
-    DataDir.update_database_path(database)
+    main()
 
-    # set up invoice folder
-    invoice_dir = init_invoice()
-    DataDir.update_invoice_dir(invoice_dir)
 
-    logger.info(f"data set to     : {data!r}")
-    logger.info(f"database set to : {database!r}")
-    logger.info(f"invoices will be generated at : {invoice_dir!r}")
 
-    db = InvoiceDataBase()
-    logger.info(f"DataBase {db}")
 
-    while True:
-        # generate invoice
-        invoice = generate_invoice()
 
-        try:
-            db.check_invoice(invoice)
-            db.add_invoice(invoice)
-            invoice.build_pdf()
-            logger.info("Success")
 
-        except (TVAError, InvoiceNumberError, InvalidInvoice) as err:
-            logger.error("Must redfine invoice")
