@@ -10,7 +10,7 @@ Examples of generated invoices can be found in the `invoices/` folder. Two types
 
 See example below,
 
-![Invoice Example](images/invoice.jpg)
+![Invoice Example](images/invoice.JPG)
 
 
 ---
@@ -33,7 +33,7 @@ py -m billing -d input_json_data_folder -i invoices_folder
 You can also place the `billing.bat` file in your Windows PATH to call the module directly 
 from the command line using: `billing`
 
-![Invoice Example](images/cmd.jpg)
+![Invoice Example](images/cmd.JPG)
 
 ###  b. option 2 (import and run programmatically)
 
